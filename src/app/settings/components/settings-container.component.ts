@@ -1,7 +1,13 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef
+} from '@angular/core';
 import { Store, select } from '@ngrx/store';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+
+import { ROUTE_ANIMATIONS_ELEMENTS } from '@app/core';
 
 import {
   ActionSettingsChangeAnimationsElements,
@@ -9,20 +15,20 @@ import {
   ActionSettingsChangeAutoNightMode,
   ActionSettingsChangeLanguage,
   ActionSettingsChangeTheme,
-  ActionSettingsPersist,
   ActionSettingsChangeStickyHeader
 } from '../settings.actions';
-import { SettingsState } from '../settings.model';
+import { SettingsState, State } from '../settings.model';
 import { selectSettings } from '../settings.selectors';
 
 @Component({
   selector: 'anms-settings',
   templateUrl: './settings-container.component.html',
-  styleUrls: ['./settings-container.component.scss']
+  styleUrls: ['./settings-container.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SettingsContainerComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<void> = new Subject<void>();
-  settings: SettingsState;
+export class SettingsContainerComponent implements OnInit {
+  routeAnimationsElements = ROUTE_ANIMATIONS_ELEMENTS;
+  settings$: Observable<SettingsState>;
 
   themes = [
     { value: 'DEFAULT-THEME', label: 'blue' },
@@ -40,55 +46,39 @@ export class SettingsContainerComponent implements OnInit, OnDestroy {
     { value: 'pt-br', label: 'pt-br' }
   ];
 
-  constructor(private store: Store<{}>) {
-    store
-      .pipe(
-        select(selectSettings),
-        takeUntil(this.unsubscribe$)
-      )
-      .subscribe(settings => (this.settings = settings));
-  }
+  constructor(private store: Store<State>) {}
 
-  ngOnInit() {}
-
-  ngOnDestroy(): void {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
+  ngOnInit() {
+    this.settings$ = this.store.pipe(select(selectSettings));
   }
 
   onLanguageSelect({ value: language }) {
     this.store.dispatch(new ActionSettingsChangeLanguage({ language }));
-    this.store.dispatch(new ActionSettingsPersist({ settings: this.settings }));
   }
 
   onThemeSelect({ value: theme }) {
     this.store.dispatch(new ActionSettingsChangeTheme({ theme }));
-    this.store.dispatch(new ActionSettingsPersist({ settings: this.settings }));
   }
 
   onAutoNightModeToggle({ checked: autoNightMode }) {
     this.store.dispatch(
       new ActionSettingsChangeAutoNightMode({ autoNightMode })
     );
-    this.store.dispatch(new ActionSettingsPersist({ settings: this.settings }));
   }
 
   onStickyHeaderToggle({ checked: stickyHeader }) {
     this.store.dispatch(new ActionSettingsChangeStickyHeader({ stickyHeader }));
-    this.store.dispatch(new ActionSettingsPersist({ settings: this.settings }));
   }
 
   onPageAnimationsToggle({ checked: pageAnimations }) {
     this.store.dispatch(
       new ActionSettingsChangeAnimationsPage({ pageAnimations })
     );
-    this.store.dispatch(new ActionSettingsPersist({ settings: this.settings }));
   }
 
   onElementsAnimationsToggle({ checked: elementsAnimations }) {
     this.store.dispatch(
       new ActionSettingsChangeAnimationsElements({ elementsAnimations })
     );
-    this.store.dispatch(new ActionSettingsPersist({ settings: this.settings }));
   }
 }

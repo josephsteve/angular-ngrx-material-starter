@@ -1,6 +1,6 @@
 import { Action } from '@ngrx/store';
 
-import { Language, SettingsState } from './settings.model';
+import { Language } from './settings.model';
 
 export enum SettingsActionTypes {
   CHANGE_LANGUAGE = '[Settings] Change Language',
@@ -10,7 +10,7 @@ export enum SettingsActionTypes {
   CHANGE_ANIMATIONS_PAGE = '[Settings] Change Animations Page',
   CHANGE_ANIMATIONS_PAGE_DISABLED = '[Settings] Change Animations Page Disabled',
   CHANGE_ANIMATIONS_ELEMENTS = '[Settings] Change Animations Elements',
-  PERSIST = '[Settings] Persist'
+  CHANGE_HOUR = '[Settings] Change Hours'
 }
 
 export class ActionSettingsChangeLanguage implements Action {
@@ -55,18 +55,18 @@ export class ActionSettingsChangeAnimationsElements implements Action {
   constructor(readonly payload: { elementsAnimations: boolean }) {}
 }
 
-export class ActionSettingsPersist implements Action {
-  readonly type = SettingsActionTypes.PERSIST;
+export class ActionSettingsChangeHour implements Action {
+  readonly type = SettingsActionTypes.CHANGE_HOUR;
 
-  constructor(readonly payload: { settings: SettingsState }) {}
+  constructor(readonly payload: { hour: number }) {}
 }
 
 export type SettingsActions =
-  | ActionSettingsPersist
   | ActionSettingsChangeLanguage
   | ActionSettingsChangeTheme
   | ActionSettingsChangeAnimationsPage
   | ActionSettingsChangeAnimationsPageDisabled
   | ActionSettingsChangeAnimationsElements
   | ActionSettingsChangeAutoNightMode
-  | ActionSettingsChangeStickyHeader;
+  | ActionSettingsChangeStickyHeader
+  | ActionSettingsChangeHour;

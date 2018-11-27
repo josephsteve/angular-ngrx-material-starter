@@ -3,10 +3,10 @@ import {
   ActionSettingsChangeAnimationsPage,
   ActionSettingsChangeAnimationsPageDisabled,
   ActionSettingsChangeAutoNightMode,
+  ActionSettingsChangeHour,
   ActionSettingsChangeLanguage,
   ActionSettingsChangeStickyHeader,
   ActionSettingsChangeTheme,
-  ActionSettingsPersist,
   SettingsActionTypes
 } from './settings.actions';
 import { NIGHT_MODE_THEME } from './settings.model';
@@ -79,30 +79,12 @@ describe('Settings Actions', () => {
     expect(action.payload.stickyHeader).toEqual(true);
   });
 
-  it('should create ActionSettingsPersist action', () => {
-    const action = new ActionSettingsPersist({
-      settings: {
-        autoNightMode: true,
-        elementsAnimations: true,
-        language: 'en',
-        theme: NIGHT_MODE_THEME,
-        pageAnimations: true,
-        pageAnimationsDisabled: true,
-        stickyHeader: true
-      }
+  it('should create ActionSettingsChangeHour action', () => {
+    const action = new ActionSettingsChangeHour({
+      hour: 7
     });
 
-    expect(action.type).toEqual(SettingsActionTypes.PERSIST);
-    expect(action.payload.settings).toEqual(
-      jasmine.objectContaining({
-        autoNightMode: true,
-        elementsAnimations: true,
-        language: 'en',
-        theme: NIGHT_MODE_THEME,
-        pageAnimations: true,
-        pageAnimationsDisabled: true,
-        stickyHeader: true
-      })
-    );
+    expect(action.type).toEqual(SettingsActionTypes.CHANGE_HOUR);
+    expect(action.payload.hour).toEqual(7);
   });
 });

@@ -1,34 +1,32 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { select, Store } from '@ngrx/store';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
-import { ROUTE_ANIMATIONS_ELEMENTS } from '@app/core';
+import { ROUTE_ANIMATIONS_ELEMENTS, NotificationService } from '@app/core';
 
 import {
   ActionTodosAdd,
   ActionTodosFilter,
-  ActionTodosPersist,
   ActionTodosRemoveDone,
   ActionTodosToggle
 } from '../todos.actions';
-import { selectTodos } from '../todos.selectors';
-import { Todo, TodosFilter, TodosState } from '../todos.model';
+import { selectTodos, selectRemoveDoneTodosDisabled } from '../todos.selectors';
+import { Todo, TodosFilter } from '../todos.model';
 import { State } from '../../examples.state';
-import { TranslateService } from '@ngx-translate/core';
-import { NotificationService } from '@app/core/notifications/notification.service';
 
 @Component({
   selector: 'anms-todos',
   templateUrl: './todos-container.component.html',
-  styleUrls: ['./todos-container.component.scss']
+  styleUrls: ['./todos-container.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TodosContainerComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<void> = new Subject<void>();
-
+export class TodosContainerComponent implements OnInit {
   routeAnimationsElements = ROUTE_ANIMATIONS_ELEMENTS;
-  todos: TodosState;
+  todos$: Observable<Todo[]>;
+  removeDoneDisabled$: Observable<boolean>;
   newTodo = '';
 
   constructor(
@@ -39,38 +37,14 @@ export class TodosContainerComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.store
-      .pipe(
-        select(selectTodos),
-        takeUntil(this.unsubscribe$)
-      )
-      .subscribe(todos => {
-        this.todos = todos;
-        this.store.dispatch(new ActionTodosPersist({ todos }));
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
-  }
-
-  get filteredTodos() {
-    const filter = this.todos.filter;
-    if (filter === 'ALL') {
-      return this.todos.items;
-    } else {
-      const predicate = filter === 'DONE' ? t => t.done : t => !t.done;
-      return this.todos.items.filter(predicate);
-    }
+    this.todos$ = this.store.pipe(select(selectTodos));
+    this.removeDoneDisabled$ = this.store.pipe(
+      select(selectRemoveDoneTodosDisabled)
+    );
   }
 
   get isAddTodoDisabled() {
     return this.newTodo.length < 4;
-  }
-
-  get isRemoveDoneTodosDisabled() {
-    return this.todos.items.filter(item => item.done).length === 0;
   }
 
   onNewTodoChange(newTodo: string) {
@@ -108,6 +82,7 @@ export class TodosContainerComponent implements OnInit, OnDestroy {
         panelClass: 'todos-notification-overlay'
       })
       .onAction()
+      .pipe(take(1))
       .subscribe(() => this.onToggleTodo({ ...todo, done: !todo.done }));
   }
 
